@@ -18,11 +18,11 @@ import (
 )
 
 var (
-	list = kingpin.Command("list", "List stuff")
 	connect = kingpin.Command("connect", "Connect to a VPN")
-	hosts = list.Command("hosts", "List available vpn hosts")
-	profile = list.Command("profiles", "List available vpn profiles")
 	//profile = connect.Flag("profile", "profile name.").Required().Short('p').String()
+	list = kingpin.Command("list", "List stuff")
+	hosts = list.Command("hosts", "List available vpn hosts")
+	profileList = list.Command("profiles", "List available vpn profiles")
 	listRegex = regexp.MustCompile(`^list`)
 )
 
