@@ -14,7 +14,7 @@ import (
 var awsRegions = []string{"us-east-1", "us-west-1", "us-west-2", "eu-west-1", "eu-central-1", "sa-east-1"}
 
 type vpnInstance struct {
-	VpcId       string `json:"vpc_id"`
+	VpcID string `json:"vpc_id"`
 	Name        string `json:"name"`
 	Environment string `json:"environment"`
 	PublicIP    string `json:"public_ip"`
@@ -87,7 +87,7 @@ func listVpnInstnaces(vpcCidrs map[string]string) []vpnInstance {
 	vpnInstanceList := listFilteredInstances("vpn")
 	for _, instance := range vpnInstanceList {
 		vpn := vpnInstance{
-			VpcId: *instance.VpcId,
+			VpcID: *instance.VpcId,
 			VpcCidr: vpcCidrs[*instance.VpcId],
 			Name: extractTagValue(instance.Tags, "Name"),
 			Environment: extractTagValue(instance.Tags, "environment"),
@@ -99,19 +99,10 @@ func listVpnInstnaces(vpcCidrs map[string]string) []vpnInstance {
 }
 
 func writevpnDetailFile(vpnList []vpnInstance) {
-	vpnJson, err := json.Marshal(vpnList)
+	vpnJSON, err := json.Marshal(vpnList)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	ioutil.WriteFile("vpn_hosts.json",vpnJson,0644)
+	ioutil.WriteFile("vpn_hosts.json", vpnJSON, 0644)
 }
-
-func main() {
-	vpcList := listVPCs()
-	vpn := listVpnInstnaces(vpcList)
-	writevpnDetailFile(vpn)
-	print("complete")
-}
-
-
