@@ -9,12 +9,18 @@ import (
 	"strings"
 	"encoding/json"
 	"io/ioutil"
+	"path"
+	"github.com/olekukonko/tablewriter"
+
+	"os"
+	"strconv"
 )
 
-var awsRegions = []string{"us-east-1", "us-west-1", "us-west-2", "eu-west-1", "eu-central-1", "sa-east-1"}
+var awsRegions = []string{"us-east-1"}//, "us-west-1", "us-west-2", "eu-west-1", "eu-central-1", "sa-east-1"}
+var hostFilePath string = path.Join(resourcePath, "vpn_hosts.json")
 
 type vpnInstance struct {
-	VpcID string `json:"vpc_id"`
+	VpcID       string `json:"vpc_id"`
 	Name        string `json:"name"`
 	Environment string `json:"environment"`
 	PublicIP    string `json:"public_ip"`
@@ -104,5 +110,47 @@ func writevpnDetailFile(vpnList []vpnInstance) {
 		fmt.Println(err)
 		return
 	}
-	ioutil.WriteFile("vpn_hosts.json", vpnJSON, 0644)
+	fmt.Printf("Writing host file to %s\n", hostFilePath)
+	error := ioutil.WriteFile(hostFilePath, vpnJSON, 0644)
+	if error != nil {
+		fmt.Printf("Could not write host file to path %s\n", hostFilePath)
+		log.Fatal(error)
+	}
+}
+
+func refreshHosts() {
+	print("refreshing hosts")
+	vpcList := listVPCs()
+	vpn := listVpnInstnaces(vpcList)
+	writevpnDetailFile(vpn)
+	print("complete")
+}
+
+func hostsFileJson() []vpnInstance {
+	file, e := ioutil.ReadFile(hostFilePath)
+	if e != nil {
+		fmt.Printf("File error: %v\n", e)
+		os.Exit(1)
+	}
+	var vpnHosts []vpnInstance
+	json.Unmarshal(file, &vpnHosts)
+	return vpnHosts
+}
+
+func printHosts() {
+	vpnHosts := hostsFileJson()
+	consoleTable := tablewriter.NewWriter(os.Stdout)
+	consoleTable.SetHeader([]string{"#", "VPC ID", "VPN Name", "Environment", "Public IP", "VPC CIDR"})
+	for index, vpnHost := range vpnHosts {
+		row := []string{
+			strconv.Itoa(index),
+			vpnHost.VpcID,
+			vpnHost.Name,
+			vpnHost.Environment,
+			vpnHost.PublicIP,
+			vpnHost.VpcCidr,
+		}
+		consoleTable.Append(row)
+	}
+	consoleTable.Render()
 }
