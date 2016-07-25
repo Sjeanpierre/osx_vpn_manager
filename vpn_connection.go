@@ -229,7 +229,8 @@ func setupManagedVPNConnection() {
 	log.Printf("Managed VPN `%s` not found, creating...\n", managedName)
 	createManagedVPN()
 	if verifyManagedVPNConnection() {
-		return
+		fmt.Println("Managed VPN settings applied, please rerun last command\n")
+		os.Exit(0)
 	}
 	log.Fatal("Could not setup managed VPN connection\n")
 }
