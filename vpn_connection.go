@@ -24,9 +24,9 @@ var (
 	vpnProfileFilePath = path.Join(resourcePath, "vpn_profiles.json")
 	managedName = "osx_managed_vpn"
 	managedHost = "managedvpn.local"
-	managedPSK = "dummy_psk"
-	managedUserName = "dummy_un"
-	managedPW = "dummy_pw"
+	managedPSK = "osx_managed_psk"
+	managedUserName = "osx_managed_un"
+	managedPW = "osx_managed_pw"
 	macvpnCMD = "macosvpn"
 	macvpnArgs = []string{"create",
 		"--l2tp",
@@ -48,6 +48,7 @@ var (
 	vpcIndexRegex = regexp.MustCompile(`\d?`)
 	weirdRouteExitCodeRegex = regexp.MustCompile(`exit status 64`)
 	vpnProfileFields = []string{"ID#","Name","Username"}
+	sameConnection bool
 )
 
 type vpnProfile struct {
@@ -112,10 +113,39 @@ func updateManagedVPNHost(vpnHost vpnInstance) {
 		log.Fatal("Could not read hostfile")
 	}
 	if hosts.Has(vpnHost.PublicIP, managedHost) {
+		sameConnection = true
 		return
 	}
 	removeExistingHost()
 	addManagedVPNHost(vpnHost)
+}
+
+func needsDisconnection() bool{
+	var disconnect bool
+	if connectionEstablished() {
+		if sameConnection {
+			disconnect = false
+		} else {
+			disconnect = true
+		}
+	}
+
+	return disconnect
+}
+
+func disconnectExistingConnection() {
+	if needsDisconnection() {
+		fmt.Println("Disconnecting existing managed VPN connection")
+		cmd := exec.Command("scutil",
+			"--nc",
+			"stop",
+			managedName,
+		)
+		err := cmd.Run()
+		if err != nil {
+			log.Fatal("Could not stop previous managed VPN connection")
+		}
+	}
 }
 
 func addManagedVPNHost(vpnHost vpnInstance) {
@@ -164,7 +194,7 @@ func establishManagedVPNConnection(vpnDetails vpnProfile, vpnHost *vpnInstance) 
 	print("connecting...")
 	for {
 		print(".")
-		if connectionReady() {
+		if connectionEstablished() {
 			print("\n")
 			updateRouting(*vpnHost)
 			fmt.Printf("VPN connection to %s established!!", vpnHost.Name)
@@ -204,7 +234,7 @@ func setupManagedVPNConnection() {
 	log.Fatal("Could not setup managed VPN connection\n")
 }
 
-func connectionReady() bool {
+func connectionEstablished() bool {
 	output, err := exec.Command("scutil", "--nc", "status", managedName).Output()
 	if err != nil {
 		log.Fatal(err)
@@ -259,6 +289,7 @@ func startConnection(vpnIdentifier string, profileName string) {
 	setupManagedVPNConnection()
 	vpnHost := selectVPNHost(vpnIdentifier)
 	updateManagedVPNHost(vpnHost)
+	disconnectExistingConnection()
 	profile := selectVPNProfileDetails(profileName)
 	establishManagedVPNConnection(profile, &vpnHost)
 }
