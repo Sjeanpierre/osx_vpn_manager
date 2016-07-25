@@ -17,6 +17,7 @@ import (
 	"path"
 	"strconv"
 
+	"github.com/olekukonko/tablewriter"
 )
 
 var (
@@ -46,6 +47,7 @@ var (
 	vpcUIDRegex = regexp.MustCompile(`^vpc-`)
 	vpcIndexRegex = regexp.MustCompile(`\d?`)
 	weirdRouteExitCodeRegex = regexp.MustCompile(`exit status 64`)
+	vpnProfileFields = []string{"ID#","Name","Username"}
 )
 
 type vpnProfile struct {
@@ -64,6 +66,21 @@ func loadprofileFile() []vpnProfile {
 	var profiles []vpnProfile
 	json.Unmarshal(file, &profiles)
 	return profiles
+}
+
+func printVPNProfiles() {
+	vpnProfiles := loadprofileFile()
+	consoleTable := tablewriter.NewWriter(os.Stdout)
+	consoleTable.SetHeader(vpnProfileFields)
+	for index, vpnProfile := range vpnProfiles {
+		row := []string{
+			strconv.Itoa(index),
+			vpnProfile.Name,
+			vpnProfile.UserName,
+		}
+		consoleTable.Append(row)
+	}
+	consoleTable.Render()
 }
 
 func selectVPNProfileDetails(profileName string) vpnProfile {
@@ -229,7 +246,6 @@ func selectVPNHost(identifier string) vpnInstance{
 		}
 	}
 	fmt.Println("Connecting to VPN by instnace Name")
-	log
 	for _,host := range vpnHostsList {
 		if host.Name == identifier  {
 			return host
@@ -239,10 +255,10 @@ func selectVPNHost(identifier string) vpnInstance{
 	return vpnInstance{}
 }
 
-func connect(vpnIdentifier string, profileName string) {
+func startConnection(vpnIdentifier string, profileName string) {
 	setupManagedVPNConnection()
-	vpnHost := selectVPNHost("vpc-b9f8b2dc")
+	vpnHost := selectVPNHost(vpnIdentifier)
 	updateManagedVPNHost(vpnHost)
-	profile := selectVPNProfileDetails("elsm")
+	profile := selectVPNProfileDetails(profileName)
 	establishManagedVPNConnection(profile, &vpnHost)
 }
