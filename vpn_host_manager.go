@@ -112,7 +112,7 @@ func writevpnDetailFile(vpnList []vpnInstance) {
 		return
 	}
 	fmt.Printf("Writing host file to %s\n", hostFilePath)
-	werror := ioutil.WriteFile(hostFilePath, vpnJSON, 0644)
+	werror := ioutil.WriteFile(hostFilePath, vpnJSON, 0755)
 	if werror != nil {
 		fmt.Printf("Could not write host file to path %s\n", hostFilePath)
 		log.Fatal(werror)
