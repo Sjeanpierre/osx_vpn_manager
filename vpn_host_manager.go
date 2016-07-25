@@ -16,8 +16,9 @@ import (
 	"strconv"
 )
 
-var awsRegions = []string{"us-east-1"}//, "us-west-1", "us-west-2", "eu-west-1", "eu-central-1", "sa-east-1"}
-var hostFilePath string = path.Join(resourcePath, "vpn_hosts.json")
+var awsRegions = []string{"us-east-1", "us-west-1", "us-west-2", "eu-west-1", "eu-central-1", "sa-east-1"}
+var hostFilePath = path.Join(resourcePath, "vpn_hosts.json")
+var vpnInstanceFieldNames = []string{"ID#", "VPC ID", "VPN Name", "Environment", "Public IP", "VPC CIDR"}
 
 type vpnInstance struct {
 	VpcID       string `json:"vpc_id"`
@@ -111,10 +112,10 @@ func writevpnDetailFile(vpnList []vpnInstance) {
 		return
 	}
 	fmt.Printf("Writing host file to %s\n", hostFilePath)
-	error := ioutil.WriteFile(hostFilePath, vpnJSON, 0644)
-	if error != nil {
+	werror := ioutil.WriteFile(hostFilePath, vpnJSON, 0644)
+	if werror != nil {
 		fmt.Printf("Could not write host file to path %s\n", hostFilePath)
-		log.Fatal(error)
+		log.Fatal(werror)
 	}
 }
 
@@ -126,7 +127,7 @@ func refreshHosts() {
 	print("complete")
 }
 
-func hostsFileJson() []vpnInstance {
+func readHostsJSONFile() []vpnInstance {
 	file, e := ioutil.ReadFile(hostFilePath)
 	if e != nil {
 		fmt.Printf("File error: %v\n", e)
@@ -138,10 +139,10 @@ func hostsFileJson() []vpnInstance {
 }
 
 func printHosts() {
-	vpnHosts := hostsFileJson()
+	vpnHostsList := readHostsJSONFile()
 	consoleTable := tablewriter.NewWriter(os.Stdout)
-	consoleTable.SetHeader([]string{"#", "VPC ID", "VPN Name", "Environment", "Public IP", "VPC CIDR"})
-	for index, vpnHost := range vpnHosts {
+	consoleTable.SetHeader(vpnInstanceFieldNames)
+	for index, vpnHost := range vpnHostsList {
 		row := []string{
 			strconv.Itoa(index),
 			vpnHost.VpcID,
