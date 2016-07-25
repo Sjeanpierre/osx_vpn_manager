@@ -12,7 +12,6 @@ package main
 //todo configure routing
 
 import (
-	"fmt"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"regexp"
 	"os"
@@ -24,12 +23,14 @@ var (
 	resourcePath = path.Join(os.Getenv("HOME") ,".vpn_host_manager")
 	connect = kingpin.Command("connect", "Connect to a VPN")
 	profile = connect.Flag("profile", "profile name.").Required().Short('p').String()
+	vpn = connect.Arg("vpn", "Identifier for VPN to be connected").Required().String()
 	list = kingpin.Command("list", "List stuff")
-	hosts = list.Command("hosts", "List available vpn hosts")
-	profileList = list.Command("profiles", "List available vpn profiles")
+	_ = list.Command("hosts", "List available vpn hosts")
+	_ = list.Command("profiles", "List available vpn profiles")
+	_ = kingpin.Command("refresh", "Refreshes resources")
 	listRegex = regexp.MustCompile(`^list`)
 	refreshRegex = regexp.MustCompile(`^refresh`)
-	refresh = kingpin.Command("refresh", "Refreshes resources")
+	connectRegex = regexp.MustCompile(`^connect`)
 )
 
 func listVpnHosts() {
@@ -37,7 +38,7 @@ func listVpnHosts() {
 }
 
 func listVpnProfiles() {
-	fmt.Print("profile list")
+	printVPNProfiles()
 }
 
 func listFunctions(listMethod string) {
@@ -54,6 +55,10 @@ func refreshFunctions(refreshMethod string) {
 		refreshHosts()
 	}
 
+}
+
+func connectVPN(profileName string,vpnIdentifier string) {
+	startConnection(vpnIdentifier,profileName)
 }
 
 func setupDirectories() {
@@ -73,5 +78,7 @@ func main() {
 		listFunctions(parsed)
 	case refreshRegex.MatchString(parsed):
 		refreshFunctions(parsed)
+	case connectRegex.MatchString(parsed):
+		connectVPN(*profile,*vpn)
 	}
 }
