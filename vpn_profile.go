@@ -16,7 +16,6 @@ import (
 var (
 	vpnProfileFields = []string{"ID#", "Name", "Username"}
 	vpnProfileFilePath = path.Join(resourcePath, "vpn_profiles.json")
-	vpnProfiles = loadProfileFile()
 )
 
 type vpnProfile struct {
@@ -53,6 +52,7 @@ func writeProfileFile(profileList []vpnProfile) {
 }
 
 func printVPNProfileList() {
+	vpnProfiles := loadProfileFile()
 	consoleTable := tablewriter.NewWriter(os.Stdout)
 	consoleTable.SetHeader(vpnProfileFields)
 	for index, vpnProfile := range vpnProfiles {
@@ -67,6 +67,7 @@ func printVPNProfileList() {
 }
 
 func selectVPNProfileDetails(profileName string) vpnProfile {
+	vpnProfiles := loadProfileFile()
 	var selectedProfile vpnProfile
 	for _, profile := range vpnProfiles {
 		if profile.Name == profileName {
@@ -80,6 +81,7 @@ func selectVPNProfileDetails(profileName string) vpnProfile {
 }
 
 func detectDuplicateName(providedName string) {
+	vpnProfiles := loadProfileFile()
 	for _, profile := range vpnProfiles {
 		if profile.Name == providedName {
 			log.Fatalf("profile name %s: Already present, please select another name", providedName)
@@ -115,6 +117,7 @@ func confirm(username string, password string, psk string) bool {
 }
 
 func addProfile(profileName string) {
+	vpnProfiles := loadProfileFile()
 	detectDuplicateName(profileName)
 	fmt.Printf("Please enter the following values to configure VPN profile %s\n", profileName)
 	username := detailCapture("USERNAME:")

@@ -35,6 +35,7 @@ var (
 	hostCommadRegex = regexp.MustCompile(`^host`)
 	profileCommandRegex = regexp.MustCompile(`^profile`)
 	//Global Vars
+        cliVersion = "0.0.2"
 	resourcePath = path.Join(os.Getenv("HOME"), ".vpn_host_manager")
 )
 
@@ -84,9 +85,14 @@ func setupDirectories() {
 	}
 }
 
-func main() {
+func setup() {
 	permissionCheck()
 	setupDirectories()
+}
+
+func main() {
+	kingpin.Version(cliVersion)
+	setup()
 	parsedArg := kingpin.Parse()
 	switch {
 	case hostCommadRegex.MatchString(parsedArg):
