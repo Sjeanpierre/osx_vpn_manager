@@ -12,16 +12,10 @@ import (
 	"time"
 	"regexp"
 	"strings"
-	"io/ioutil"
-	"encoding/json"
-	"path"
 	"strconv"
-
-	"github.com/olekukonko/tablewriter"
 )
 
 var (
-	vpnProfileFilePath = path.Join(resourcePath, "vpn_profiles.json")
 	managedName = "osx_managed_vpn"
 	managedHost = "managedvpn.local"
 	managedPSK = "osx_managed_psk"
@@ -47,56 +41,8 @@ var (
 	vpcUIDRegex = regexp.MustCompile(`^vpc-`)
 	vpcIndexRegex = regexp.MustCompile(`\d?`)
 	weirdRouteExitCodeRegex = regexp.MustCompile(`exit status 64`)
-	vpnProfileFields = []string{"ID#","Name","Username"}
 	sameConnection bool
 )
-
-type vpnProfile struct {
-	Name     string `json:"name"`
-	Psk      string `json:"psk"`
-	UserName string `json:"username"`
-	PassWord string `json:"password"`
-}
-
-func loadprofileFile() []vpnProfile {
-	file, e := ioutil.ReadFile(vpnProfileFilePath)
-	if e != nil {
-		fmt.Printf("Could not: %v\n", e)
-		os.Exit(1)
-	}
-	var profiles []vpnProfile
-	json.Unmarshal(file, &profiles)
-	return profiles
-}
-
-func printVPNProfiles() {
-	vpnProfiles := loadprofileFile()
-	consoleTable := tablewriter.NewWriter(os.Stdout)
-	consoleTable.SetHeader(vpnProfileFields)
-	for index, vpnProfile := range vpnProfiles {
-		row := []string{
-			strconv.Itoa(index),
-			vpnProfile.Name,
-			vpnProfile.UserName,
-		}
-		consoleTable.Append(row)
-	}
-	consoleTable.Render()
-}
-
-func selectVPNProfileDetails(profileName string) vpnProfile {
-	var selectedProfile vpnProfile
-	profiles := loadprofileFile()
-	for _, profile := range profiles {
-		if profile.Name == profileName {
-			selectedProfile = profile
-		}
-	}
-	if selectedProfile.Name == "" {
-		log.Fatalf("VPN Profile: %s not found in %s", profileName, vpnProfileFilePath)
-	}
-	return selectedProfile
-}
 
 func createManagedVPN() {
 	cmd := exec.Command(macvpnCMD, macvpnArgs...)
@@ -197,13 +143,13 @@ func establishManagedVPNConnection(vpnDetails vpnProfile, vpnHost *vpnInstance) 
 		if connectionEstablished() {
 			print("\n")
 			updateRouting(*vpnHost)
-			fmt.Printf("VPN connection to %s established!!", vpnHost.Name)
+			fmt.Printf("VPN connection to %s established!!\n", vpnHost.Name)
 			break
 		} else if i < 20 {
 			i++
 			time.Sleep(500 * time.Millisecond)
 		} else {
-			log.Fatal("Could not set route, timed after 10 seconds waiting for VPN connection")
+			log.Fatal("Could not set route, timed after 10 seconds waiting for VPN connection\n")
 			break
 		}
 	}
