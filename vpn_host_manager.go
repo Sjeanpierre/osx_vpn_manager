@@ -138,7 +138,7 @@ func readHostsJSONFile() []vpnInstance {
 	return vpnHosts
 }
 
-func printHosts() {
+func printVPNHostList() {
 	vpnHostsList := readHostsJSONFile()
 	consoleTable := tablewriter.NewWriter(os.Stdout)
 	consoleTable.SetHeader(vpnInstanceFieldNames)
