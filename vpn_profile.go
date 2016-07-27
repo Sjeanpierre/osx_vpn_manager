@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	vpnProfileFields = []string{"ID#","Name","Username"}
+	vpnProfileFields = []string{"ID#", "Name", "Username"}
 	vpnProfileFilePath = path.Join(resourcePath, "vpn_profiles.json")
-        vpnProfiles = loadProfileFile()
+	vpnProfiles = loadProfileFile()
 )
 
 type vpnProfile struct {
@@ -43,7 +43,7 @@ func writeProfileFile(profileList []vpnProfile) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("Writing profile file to %s\n",vpnProfileFilePath)
+	fmt.Printf("Writing profile file to %s\n", vpnProfileFilePath)
 	writeError := ioutil.WriteFile(vpnProfileFilePath, profileJSON, 0755)
 	if writeError != nil {
 		fmt.Print("Could not write profile file\n")
@@ -80,16 +80,16 @@ func selectVPNProfileDetails(profileName string) vpnProfile {
 }
 
 func detectDuplicateName(providedName string) {
-	for _,profile := range vpnProfiles {
+	for _, profile := range vpnProfiles {
 		if profile.Name == providedName {
-			log.Fatalf("profile name %s: Already present, please select another name",providedName)
+			log.Fatalf("profile name %s: Already present, please select another name", providedName)
 		}
 	}
 }
 
-func detailCapture(attr string) string{
+func detailCapture(attr string) string {
 	var response string
-	fmt.Printf("%s ",attr)
+	fmt.Printf("%s ", attr)
 	_, err := fmt.Scanln(&response)
 	if err != nil {
 		if err.Error() == "unexpected newline" {
@@ -100,7 +100,7 @@ func detailCapture(attr string) string{
 	return response
 }
 
-func confirm(username string,password string,psk string) bool{
+func confirm(username string, password string, psk string) bool {
 	var returnvar bool
 	confirmation := detailCapture("Save Profile? [y/n]:")
 	switch confirmation {
@@ -109,20 +109,20 @@ func confirm(username string,password string,psk string) bool{
 	case "n":
 		main()
 	default:
-		confirm(username,password,psk)
+		confirm(username, password, psk)
 	}
 	return returnvar
 }
 
 func addProfile(profileName string) {
 	detectDuplicateName(profileName)
-	fmt.Printf("Please enter the following values to configure VPN profile %s\n",profileName)
+	fmt.Printf("Please enter the following values to configure VPN profile %s\n", profileName)
 	username := detailCapture("USERNAME:")
 	password := detailCapture("PASSWORD:")
 	psk := detailCapture("PSK:")
-	if confirm(username,password,psk) {
+	if confirm(username, password, psk) {
 		var updated = []vpnProfile{}
-		updated = append(vpnProfiles,vpnProfile{Name:profileName,UserName:username,PassWord:password,Psk:psk})
+		updated = append(vpnProfiles, vpnProfile{Name:profileName, UserName:username, PassWord:password, Psk:psk})
 		writeProfileFile(updated)
 	}
 }

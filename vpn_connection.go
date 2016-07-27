@@ -66,7 +66,7 @@ func updateManagedVPNHost(vpnHost vpnInstance) {
 	addManagedVPNHost(vpnHost)
 }
 
-func needsDisconnection() bool{
+func needsDisconnection() bool {
 	var disconnect bool
 	if connectionEstablished() {
 		if sameConnection {
@@ -194,7 +194,7 @@ func connectionEstablished() bool {
 
 func updateRouting(vpnHost vpnInstance) {
 	print("updating route table\n")
-	_, err := exec.Command("route","-v", "add", "-net", vpnHost.VpcCidr, "-interface ppp0").Output()
+	_, err := exec.Command("route", "-v", "add", "-net", vpnHost.VpcCidr, "-interface ppp0").Output()
 	if err != nil {
 		if weirdRouteExitCodeRegex.MatchString(err.Error()) {
 			return
@@ -204,11 +204,11 @@ func updateRouting(vpnHost vpnInstance) {
 	}
 }
 
-func selectVPNHost(identifier string) vpnInstance{
+func selectVPNHost(identifier string) vpnInstance {
 	vpnHostsList := readHostsJSONFile()
 	if vpcUIDRegex.MatchString(identifier) {
 		fmt.Println("Connecting to VPN by UID")
-		for _,host := range vpnHostsList {
+		for _, host := range vpnHostsList {
 			if host.VpcID == identifier {
 				return host
 			}
@@ -216,15 +216,15 @@ func selectVPNHost(identifier string) vpnInstance{
 	}
 	if vpcIndexRegex.MatchString(identifier) {
 		fmt.Println("Connecting to VPN by ID#")
-		for index,host := range vpnHostsList {
-			if strconv.Itoa(index) == identifier  {
+		for index, host := range vpnHostsList {
+			if strconv.Itoa(index) == identifier {
 				return host
 			}
 		}
 	}
 	fmt.Println("Connecting to VPN by instnace Name")
-	for _,host := range vpnHostsList {
-		if host.Name == identifier  {
+	for _, host := range vpnHostsList {
+		if host.Name == identifier {
 			return host
 		}
 	}
