@@ -101,7 +101,7 @@ func addManagedVPNHost(vpnHost vpnInstance) {
 	}
 	hosts.Add(vpnHost.PublicIP, managedHost)
 	if err := hosts.Flush(); err != nil {
-		log.Fatalf("Error writing host entry", err)
+		log.Fatalf("Error writing host entry %s", err)
 	}
 }
 
@@ -117,7 +117,7 @@ func removeExistingHost() {
 		}
 	}
 	if err := hosts.Flush(); err != nil {
-		log.Fatalf("Error writing host entry", err)
+		log.Fatalf("Error writing host entry %s", err)
 	}
 }
 
