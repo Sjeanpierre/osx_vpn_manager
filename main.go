@@ -5,11 +5,6 @@ package main
 //https://developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man8/scutil.8.html
 //https://github.com/halo/macosvpn
 
-//todo read config/profile files for connection details
-//todo read vpn host list
-//todo create vpn skeleton
-//todo establish vpn connection
-//todo configure routing
 
 import (
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -17,42 +12,62 @@ import (
 	"os"
 	"log"
 	"path"
+	"os/exec"
+	"strings"
 )
 
 var (
-	resourcePath = path.Join(os.Getenv("HOME") ,".vpn_host_manager")
+	//Connection Commands
 	connect = kingpin.Command("connect", "Connect to a VPN")
-	profile = connect.Flag("profile", "profile name.").Required().Short('p').String()
+	profile = connect.Flag("profile", "profile name.").Required().Short('p').Envar("VPN_PROFILE").String()
 	vpn = connect.Arg("vpn", "Identifier for VPN to be connected").Required().String()
-	list = kingpin.Command("list", "List stuff")
-	_ = list.Command("hosts", "List available vpn hosts")
-	_ = list.Command("profiles", "List available vpn profiles")
-	_ = kingpin.Command("refresh", "Refreshes resources")
-	listRegex = regexp.MustCompile(`^list`)
-	refreshRegex = regexp.MustCompile(`^refresh`)
+	//Host Commands
+	hosts = kingpin.Command("host", "Commands related to vpn hosts")
+	_ = hosts.Command("list", "List vpn hosts")
+	_ = hosts.Command("refresh", "Refreshes resources")
+	//Profile Commands
+	profiles = kingpin.Command("profile","Commands related to VPN connection profiles")
+	_ = profiles.Command("list", "List vpn connection profiles")
+	addProfilecmd = profiles.Command("add","Add new profile to existing set")
+	newProfile = addProfilecmd.Arg("profile","Name of profile to add").Required().String()
+	//Command Regex Section
 	connectRegex = regexp.MustCompile(`^connect`)
+	hostCommadRegex = regexp.MustCompile(`^host`)
+	profileCommandRegex = regexp.MustCompile(`^profile`)
+	//Global Vars
+	resourcePath = path.Join(os.Getenv("HOME") ,".vpn_host_manager")
 )
 
-func listVpnHosts() {
-	printHosts()
-}
-
-func listVpnProfiles() {
-	printVPNProfiles()
-}
-
-func listFunctions(listMethod string) {
-	switch listMethod {
-	case "list hosts":
-		listVpnHosts()
-	case "list profiles":
-		listVpnProfiles()
+func permissionCheck() {
+	output,_ := exec.Command("id","-u").Output()
+	trimmedOutput := strings.Trim(string(output),"\n")
+	if string(trimmedOutput) != "0" {
+		log.Fatal("Please rerun as root or with sudo")
 	}
 }
 
-func refreshFunctions(refreshMethod string) {
-	if refreshMethod == "refresh" {
+func listVpnHosts() {
+	printVPNHostList()
+}
+
+
+func hostFunctions(hostMethod string) {
+	switch hostMethod {
+	case "host list":
+		listVpnHosts()
+	case "host refresh":
 		refreshHosts()
+	}
+}
+
+func profileFunctions(profileMethod string) {
+	switch profileMethod {
+	case "profile list":
+		printVPNProfileList()
+	case "profile add":
+		addProfile(*newProfile)
+	default:
+		log.Fatalf("not sure what to do with command: %s",profileMethod)
 	}
 
 }
@@ -63,7 +78,7 @@ func connectVPN(profileName string,vpnIdentifier string) {
 
 func setupDirectories() {
 	if _, err := os.Stat(resourcePath); os.IsNotExist(err) {
-		error := os.Mkdir(resourcePath,0644)
+		error := os.Mkdir(resourcePath,0755)
 		if error != nil {
 			log.Fatalf("encountered error during setup, %s", error)
 		}
@@ -71,14 +86,20 @@ func setupDirectories() {
 }
 
 func main() {
+	permissionCheck()
         setupDirectories()
-	parsed := kingpin.Parse()
+	parsedArg := kingpin.Parse()
 	switch {
-	case listRegex.MatchString(parsed):
-		listFunctions(parsed)
-	case refreshRegex.MatchString(parsed):
-		refreshFunctions(parsed)
-	case connectRegex.MatchString(parsed):
+	case hostCommadRegex.MatchString(parsedArg):
+		hostFunctions(parsedArg)
+	case profileCommandRegex.MatchString(parsedArg):
+		profileFunctions(parsedArg)
+	case connectRegex.MatchString(parsedArg):
 		connectVPN(*profile,*vpn)
+	default:
+		//if we are in this error block it is because we have established
+		//a command for the provided text, but have not specified a regex
+		//for handling it.
+		log.Fatalf("Command signature not recognized: %s",parsedArg)
 	}
 }
