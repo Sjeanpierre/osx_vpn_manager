@@ -11,6 +11,9 @@ brew install Sjeanpierre/tools/osx_vpn_manager
 ```
 
 ## Usage
+#### profile add - configure vpn profiles, which consist of username, password, and pre-shared key values
+<img width="468" alt="1__sudo" src="https://cloud.githubusercontent.com/assets/673382/17197819/20fcc8a4-543e-11e6-8d79-26859362ac57.png">
+
 #### profile list - list configured vpn profiles, which consist of username, password, and pre-shared key values
 ```
 sudo vpn profile list
