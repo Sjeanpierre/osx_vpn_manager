@@ -40,7 +40,6 @@ var (
 	existingHostRegex = regexp.MustCompile(strings.Join([]string{managedHost, "$"}, ""))
 	vpcUIDRegex = regexp.MustCompile(`^vpc-`)
 	vpcIndexRegex = regexp.MustCompile(`\d?`)
-	weirdRouteExitCodeRegex = regexp.MustCompile(`exit status 64`)
 	sameConnection bool
 )
 
@@ -194,12 +193,10 @@ func connectionEstablished() bool {
 
 func updateRouting(vpnHost vpnInstance) {
 	print("updating route table\n")
-	_, err := exec.Command("route", "-v", "add", "-net", vpnHost.VpcCidr, "-interface ppp0").Output()
+	cmd := exec.Command("route", "-v", "add", "-net", vpnHost.VpcCidr, "-interface", "ppp0")
+	err := cmd.Run()
 	if err != nil {
-		if weirdRouteExitCodeRegex.MatchString(err.Error()) {
-			return
-		}
-		log.Fatalf("Could not update route table after VPN connection: %s", err)
+		log.Fatalf("Could not update route table after VPN connection: %s\n", err.Error())
 
 	}
 }
