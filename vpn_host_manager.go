@@ -150,12 +150,12 @@ func readHostsJSONFile() vpnInstanceGrp {
 	}
 	var vpnHosts vpnInstanceGrp
 	json.Unmarshal(file, &vpnHosts)
+	sort.Sort(vpnHosts)
 	return vpnHosts
 }
 
 func printVPNHostList() {
 	vpnHostsList := readHostsJSONFile()
-	sort.Sort(vpnHostsList)
 	consoleTable := tablewriter.NewWriter(os.Stdout)
 	consoleTable.SetHeader(vpnInstanceFieldNames)
 	for index, vpnHost := range vpnHostsList {

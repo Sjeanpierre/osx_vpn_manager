@@ -39,7 +39,7 @@ var (
 	profileCommandRegex = regexp.MustCompile(`^profile`)
 	disconnectCommandRegex = regexp.MustCompile(`^disconnect`)
 	//Global Vars
-        cliVersion = "0.0.2"
+        cliVersion = "0.0.3"
 	resourcePath = path.Join(os.Getenv("HOME"), ".vpn_host_manager")
 )
 
