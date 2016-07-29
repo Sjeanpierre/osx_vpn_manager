@@ -17,7 +17,7 @@ import (
 var (
 	vpnProfileFields = []string{"ID#", "Name", "Username"}
 	vpnProfileFilePath = path.Join(resourcePath, "vpn_profiles.json")
-	NoSuchFileErrRegexp = regexp.MustCompile(`no such file or directory`)
+	noSuchFileErrRegexp = regexp.MustCompile(`no such file or directory`)
 )
 
 type vpnProfile struct {
@@ -30,14 +30,11 @@ type vpnProfile struct {
 func loadProfileFile() []vpnProfile {
 	file, e := ioutil.ReadFile(vpnProfileFilePath)
 	if e != nil {
-		if NoSuchFileErrRegexp.MatchString(e.Error()) {
+		if noSuchFileErrRegexp.MatchString(e.Error()) {
 			return []vpnProfile{}
 		}
 		fmt.Printf("Could not: %v\n", e.Error())
 		os.Exit(1)
-		//return empty slice of VPN profiles here?
-		//what happens if there is another type of legit error?
-		//todo issue#1
 	}
 	var profiles []vpnProfile
 	json.Unmarshal(file, &profiles)

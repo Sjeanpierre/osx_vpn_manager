@@ -14,6 +14,7 @@ import (
 
 	"os"
 	"strconv"
+	"sort"
 )
 
 var awsRegions = []string{"us-east-1", "us-west-1", "us-west-2", "eu-west-1", "eu-central-1", "sa-east-1"}
@@ -27,6 +28,7 @@ type vpnInstance struct {
 	PublicIP    string `json:"public_ip"`
 	VpcCidr     string `json:"vpc_cidr"`
 }
+type vpnInstanceGrp []vpnInstance
 
 func listVPCs() map[string]string {
 	vpcList := make(map[string]string)
@@ -48,6 +50,19 @@ func listVPCs() map[string]string {
 	}
 	return vpcList
 }
+
+func (slice vpnInstanceGrp) Len() int {
+	return len(slice)
+}
+
+func (slice vpnInstanceGrp) Less(i, j int) bool {
+	return slice[i].Name < slice[j].Name;
+}
+
+func (slice vpnInstanceGrp) Swap(i, j int) {
+	slice[i], slice[j] = slice[j], slice[i]
+}
+
 
 func listFilteredInstances(nameFilter string) []*ec2.Instance {
 	var filteredInstances []*ec2.Instance
@@ -89,8 +104,8 @@ func extractTagValue(tagList []*ec2.Tag, lookup string) string {
 	return tagVale
 }
 
-func listVpnInstnaces(vpcCidrs map[string]string) []vpnInstance {
-	var vpnInstances []vpnInstance
+func listVpnInstnaces(vpcCidrs map[string]string) vpnInstanceGrp {
+	var vpnInstances vpnInstanceGrp
 	vpnInstanceList := listFilteredInstances("vpn")
 	for _, instance := range vpnInstanceList {
 		vpn := vpnInstance{
@@ -105,7 +120,7 @@ func listVpnInstnaces(vpcCidrs map[string]string) []vpnInstance {
 	return vpnInstances
 }
 
-func writevpnDetailFile(vpnList []vpnInstance) {
+func writevpnDetailFile(vpnList vpnInstanceGrp) {
 	vpnJSON, err := json.Marshal(vpnList)
 	if err != nil {
 		fmt.Println(err)
@@ -127,19 +142,20 @@ func refreshHosts() {
 	print("complete")
 }
 
-func readHostsJSONFile() []vpnInstance {
+func readHostsJSONFile() vpnInstanceGrp {
 	file, e := ioutil.ReadFile(hostFilePath)
 	if e != nil {
 		fmt.Printf("File error: %v\n", e)
 		os.Exit(1)
 	}
-	var vpnHosts []vpnInstance
+	var vpnHosts vpnInstanceGrp
 	json.Unmarshal(file, &vpnHosts)
 	return vpnHosts
 }
 
 func printVPNHostList() {
 	vpnHostsList := readHostsJSONFile()
+	sort.Sort(vpnHostsList)
 	consoleTable := tablewriter.NewWriter(os.Stdout)
 	consoleTable.SetHeader(vpnInstanceFieldNames)
 	for index, vpnHost := range vpnHostsList {
