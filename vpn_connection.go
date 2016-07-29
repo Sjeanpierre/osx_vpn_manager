@@ -223,7 +223,7 @@ func selectVPNHost(identifier string) vpnInstance {
 			}
 		}
 	}
-	fmt.Println("Connecting to VPN by instnace Name")
+	fmt.Println("Connecting to VPN by instance Name")
 	for _, host := range vpnHostsList {
 		if host.Name == identifier {
 			return host
