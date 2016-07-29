@@ -14,6 +14,7 @@ import (
 	"path"
 	"os/exec"
 	"strings"
+	"fmt"
 )
 
 var (
@@ -21,6 +22,8 @@ var (
 	connect = kingpin.Command("connect", "Connect to a VPN")
 	profile = connect.Flag("profile", "profile name.").Required().Short('p').Envar("VPN_PROFILE").String()
 	vpn = connect.Arg("vpn", "Identifier for VPN to be connected").Required().String()
+	//Disconnect Commands
+	_ = kingpin.Command("disconnect", "Disconnect current VPN connection")
 	//Host Commands
 	hosts = kingpin.Command("host", "Commands related to vpn hosts")
 	_ = hosts.Command("list", "List vpn hosts")
@@ -34,6 +37,7 @@ var (
 	connectRegex = regexp.MustCompile(`^connect`)
 	hostCommadRegex = regexp.MustCompile(`^host`)
 	profileCommandRegex = regexp.MustCompile(`^profile`)
+	disconnectCommandRegex = regexp.MustCompile(`^disconnect`)
 	//Global Vars
         cliVersion = "0.0.2"
 	resourcePath = path.Join(os.Getenv("HOME"), ".vpn_host_manager")
@@ -76,6 +80,11 @@ func connectVPN(profileName string, vpnIdentifier string) {
 	startConnection(vpnIdentifier, profileName)
 }
 
+func disconnectVPN() {
+	fmt.Println("😭  BYE!! 😭")
+	disconnectConnection()
+}
+
 func setupDirectories() {
 	if _, err := os.Stat(resourcePath); os.IsNotExist(err) {
 		error := os.Mkdir(resourcePath, 0755)
@@ -101,6 +110,8 @@ func main() {
 		profileFunctions(parsedArg)
 	case connectRegex.MatchString(parsedArg):
 		connectVPN(*profile, *vpn)
+	case disconnectCommandRegex.MatchString(parsedArg):
+		disconnectVPN()
 	default:
 		//if we are in this error block it is because we have established
 		//a command for the provided text, but have not specified a regex

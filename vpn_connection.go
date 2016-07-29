@@ -81,15 +81,19 @@ func needsDisconnection() bool {
 func disconnectExistingConnection() {
 	if needsDisconnection() {
 		fmt.Println("Disconnecting existing managed VPN connection")
-		cmd := exec.Command("scutil",
-			"--nc",
-			"stop",
-			managedName,
-		)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal("Could not stop previous managed VPN connection")
-		}
+		disconnectConnection()
+	}
+}
+
+func disconnectConnection() {
+	cmd := exec.Command("scutil",
+		"--nc",
+		"stop",
+		managedName,
+	)
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal("Could not stop managed VPN connection")
 	}
 }
 
