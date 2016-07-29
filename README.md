@@ -25,6 +25,16 @@ sudo vpn profile list
 |   1 | dev    | jstevenson  |
 +-----+--------+-------------+
 ```
+#### host refresh - download details about vpn instnaces in AWS
+```
+sudo vpn host refresh
+fetching vpc details for region: us-west-1
+fetching vpc details for region: us-west-2
+...
+fetching instances with tag vpn in: us-west-1
+fetching instances with tag vpn in: us-west-2
+...
+```
 #### host list - list instnaces from AWS which contain the vpn substring in their name. (more host sources coming soon?)
 ```
 $ sudo vpn host list
