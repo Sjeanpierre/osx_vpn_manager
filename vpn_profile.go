@@ -128,9 +128,14 @@ func addProfile(profileName string) {
 	username := detailCapture("USERNAME:")
 	password := detailCapture("PASSWORD:")
 	psk := detailCapture("PSK:")
-	if confirm(username, password, psk) {
+	if confirm() {
 		var updated = []vpnProfile{}
-		updated = append(vpnProfiles, vpnProfile{Name:profileName, UserName:username, PassWord:password, Psk:psk})
+		updated = append(vpnProfiles,
+			vpnProfile{Name:profileName,
+				UserName:username,
+				PassWord:password,
+				Psk:psk,
+			})
 		writeProfileFile(updated)
 	}
 }
