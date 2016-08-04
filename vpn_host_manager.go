@@ -15,6 +15,7 @@ import (
 	"os"
 	"strconv"
 	"sort"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 var awsRegions = []string{"us-east-1", "us-west-1", "us-west-2", "eu-west-1", "eu-central-1", "sa-east-1"}
@@ -30,11 +31,16 @@ type vpnInstance struct {
 }
 type vpnInstanceGrp []vpnInstance
 
-func listVPCs() map[string]string {
+
+func listVPCs(profile string) map[string]string {
 	vpcList := make(map[string]string)
 	for _, region := range awsRegions {
 		fmt.Printf("fetching vpc details for region: %v\n", region)
-		svc := ec2.New(session.New(&aws.Config{Region: aws.String(region)}))
+		svc := ec2.New(session.New(&aws.Config{Region: aws.String(region),
+			Credentials: credentials.NewCredentials(&credentials.SharedCredentialsProvider{
+				Profile: profile,
+			}),
+		}))
 		params := &ec2.DescribeVpcsInput{}
 		resp, err := svc.DescribeVpcs(params)
 		if err != nil {
@@ -51,23 +57,14 @@ func listVPCs() map[string]string {
 	return vpcList
 }
 
-func (slice vpnInstanceGrp) Len() int {
-	return len(slice)
-}
-
-func (slice vpnInstanceGrp) Less(i, j int) bool {
-	return slice[i].Name < slice[j].Name;
-}
-
-func (slice vpnInstanceGrp) Swap(i, j int) {
-	slice[i], slice[j] = slice[j], slice[i]
-}
-
-
-func listFilteredInstances(nameFilter string) []*ec2.Instance {
+func listFilteredInstances(nameFilter string,profile string) []*ec2.Instance {
 	var filteredInstances []*ec2.Instance
 	for _, region := range awsRegions {
-		svc := ec2.New(session.New(&aws.Config{Region: aws.String(region)}))
+		svc := ec2.New(session.New(&aws.Config{Region: aws.String(region),
+			Credentials: credentials.NewCredentials(&credentials.SharedCredentialsProvider{
+				Profile: profile,
+			}),
+		}))
 		fmt.Printf("fetching instances with tag %v in: %v\n", nameFilter, region)
 		params := &ec2.DescribeInstancesInput{
 			Filters: []*ec2.Filter{
@@ -104,9 +101,9 @@ func extractTagValue(tagList []*ec2.Tag, lookup string) string {
 	return tagVale
 }
 
-func listVpnInstnaces(vpcCidrs map[string]string) vpnInstanceGrp {
+func listVpnInstnaces(vpcCidrs map[string]string,profile string) vpnInstanceGrp {
 	var vpnInstances vpnInstanceGrp
-	vpnInstanceList := listFilteredInstances("vpn")
+	vpnInstanceList := listFilteredInstances("vpn",profile)
 	for _, instance := range vpnInstanceList {
 		vpn := vpnInstance{
 			VpcID: *instance.VpcId,
@@ -135,11 +132,18 @@ func writevpnDetailFile(vpnList vpnInstanceGrp) {
 }
 
 func refreshHosts() {
-	print("refreshing hosts")
-	vpcList := listVPCs()
-	vpn := listVpnInstnaces(vpcList)
-	writevpnDetailFile(vpn)
-	print("complete")
+	awsProfiles := awsProfiles()
+	var vpnHostList vpnInstanceGrp
+	for _,awsProfile := range awsProfiles {
+		fmt.Printf("Refreshing hosts list for profile: %s\n",awsProfile)
+		vpcList := listVPCs(awsProfile)
+		vpn := listVpnInstnaces(vpcList,awsProfile)
+		//todo, add profile to instances. create function to do so
+		vpnHostList = append(vpnHostList,vpn...)
+		fmt.Println("======")
+	}
+	writevpnDetailFile(vpnHostList)
+	fmt.Println("complete\n")
 }
 
 func readHostsJSONFile() vpnInstanceGrp {
@@ -170,4 +174,16 @@ func printVPNHostList() {
 		consoleTable.Append(row)
 	}
 	consoleTable.Render()
+}
+
+func (slice vpnInstanceGrp) Len() int {
+	return len(slice)
+}
+
+func (slice vpnInstanceGrp) Less(i, j int) bool {
+	return slice[i].Name < slice[j].Name;
+}
+
+func (slice vpnInstanceGrp) Swap(i, j int) {
+	slice[i], slice[j] = slice[j], slice[i]
 }
