@@ -1,7 +1,5 @@
 package main
 
-//todo allow for setting default profiles
-
 import (
 	"io/ioutil"
 	"fmt"
