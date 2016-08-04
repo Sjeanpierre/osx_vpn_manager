@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	vpnProfileFields = []string{"ID#", "Name", "Username"}
+	vpnProfileFields = []string{"ID #", "Name", "Username"}
 	vpnProfileFilePath = path.Join(resourcePath, "vpn_profiles.json")
 	noSuchFileErrRegexp = regexp.MustCompile(`no such file or directory`)
 )
