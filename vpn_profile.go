@@ -107,8 +107,8 @@ func detailCapture(attr string) string {
 	return response
 }
 
-func confirm(username string, password string, psk string) bool {
 	var returnvar bool
+func confirm() bool {
 	confirmation := detailCapture("Save Profile? [y/n]:")
 	switch confirmation {
 	case "y":
