@@ -107,18 +107,18 @@ func detailCapture(attr string) string {
 	return response
 }
 
-	var returnvar bool
 func confirm() bool {
+	var returnVar bool
 	confirmation := detailCapture("Save Profile? [y/n]:")
 	switch confirmation {
 	case "y":
-		returnvar = true
+		returnVar = true
 	case "n":
 		main()
 	default:
-		confirm(username, password, psk)
+		confirm()
 	}
-	return returnvar
+	return returnVar
 }
 
 func addProfile(profileName string) {
