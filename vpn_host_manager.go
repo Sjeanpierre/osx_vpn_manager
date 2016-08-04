@@ -19,7 +19,7 @@ import (
 
 var awsRegions = []string{"us-east-1", "us-west-1", "us-west-2", "eu-west-1", "eu-central-1", "sa-east-1"}
 var hostFilePath = path.Join(resourcePath, "vpn_hosts.json")
-var vpnInstanceFieldNames = []string{"ID#", "VPC ID", "VPN Name", "Environment", "Public IP", "VPC CIDR"}
+var vpnInstanceFieldNames = []string{"ID #", "VPC ID", "VPN Name", "Environment", "Public IP", "VPC CIDR"}
 
 type vpnInstance struct {
 	VpcID       string `json:"vpc_id"`
