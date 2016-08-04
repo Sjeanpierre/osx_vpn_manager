@@ -1,7 +1,5 @@
 package main
 
-//todo allow for setting default profiles
-
 import (
 	"io/ioutil"
 	"fmt"
@@ -15,7 +13,7 @@ import (
 )
 
 var (
-	vpnProfileFields = []string{"ID#", "Name", "Username"}
+	vpnProfileFields = []string{"ID #", "Name", "Username"}
 	vpnProfileFilePath = path.Join(resourcePath, "vpn_profiles.json")
 	noSuchFileErrRegexp = regexp.MustCompile(`no such file or directory`)
 )
@@ -53,7 +51,7 @@ func writeProfileFile(profileList []vpnProfile) {
 		fmt.Print("Could not write profile file\n")
 		log.Fatal(writeError)
 	}
-	fmt.Println("New profile saved!")
+	fmt.Println("New profile saved!\n")
 }
 
 func printVPNProfileList() {
@@ -107,18 +105,18 @@ func detailCapture(attr string) string {
 	return response
 }
 
-func confirm(username string, password string, psk string) bool {
-	var returnvar bool
+func confirm() bool {
+	var returnVar bool
 	confirmation := detailCapture("Save Profile? [y/n]:")
 	switch confirmation {
 	case "y":
-		returnvar = true
+		returnVar = true
 	case "n":
 		main()
 	default:
-		confirm(username, password, psk)
+		confirm()
 	}
-	return returnvar
+	return returnVar
 }
 
 func addProfile(profileName string) {
@@ -128,9 +126,14 @@ func addProfile(profileName string) {
 	username := detailCapture("USERNAME:")
 	password := detailCapture("PASSWORD:")
 	psk := detailCapture("PSK:")
-	if confirm(username, password, psk) {
+	if confirm() {
 		var updated = []vpnProfile{}
-		updated = append(vpnProfiles, vpnProfile{Name:profileName, UserName:username, PassWord:password, Psk:psk})
+		updated = append(vpnProfiles,
+			vpnProfile{Name:profileName,
+				UserName:username,
+				PassWord:password,
+				Psk:psk,
+			})
 		writeProfileFile(updated)
 	}
 }

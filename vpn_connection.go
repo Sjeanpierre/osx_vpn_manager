@@ -1,7 +1,6 @@
 package main
 
 //todo use keychain to store psks instead of plaintext config file
-//todo write out IP-up template with all host for routing instead of using route command
 
 import (
 	"os/exec"
