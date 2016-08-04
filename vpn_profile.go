@@ -51,7 +51,7 @@ func writeProfileFile(profileList []vpnProfile) {
 		fmt.Print("Could not write profile file\n")
 		log.Fatal(writeError)
 	}
-	fmt.Println("New profile saved!")
+	fmt.Println("New profile saved!\n")
 }
 
 func printVPNProfileList() {
