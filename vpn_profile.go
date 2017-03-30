@@ -35,7 +35,10 @@ func loadProfileFile() []vpnProfile {
 		os.Exit(1)
 	}
 	var profiles []vpnProfile
-	json.Unmarshal(file, &profiles)
+	err := json.Unmarshal(file, &profiles)
+	if err != nil {
+		log.Fatal("Could not load vpn profiles")
+	}
 	return profiles
 }
 
@@ -127,14 +130,13 @@ func addProfile(profileName string) {
 	password := detailCapture("PASSWORD:")
 	psk := detailCapture("PSK:")
 	if confirm() {
-		var updated = []vpnProfile{}
-		updated = append(vpnProfiles,
+		vpnProfiles = append(vpnProfiles,
 			vpnProfile{Name:profileName,
 				UserName:username,
 				PassWord:password,
 				Psk:psk,
 			})
-		writeProfileFile(updated)
+		writeProfileFile(vpnProfiles)
 	}
 }
 

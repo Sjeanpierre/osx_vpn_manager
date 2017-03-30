@@ -12,8 +12,7 @@ import (
 	"os"
 	"log"
 	"path"
-	"os/exec"
-	"strings"
+	"os/user"
 	"fmt"
 )
 
@@ -39,14 +38,17 @@ var (
 	profileCommandRegex = regexp.MustCompile(`^profile`)
 	disconnectCommandRegex = regexp.MustCompile(`^disconnect`)
 	//Global Vars
-        cliVersion = "0.0.5"
+        cliVersion = "0.0.6"
 	resourcePath = path.Join(os.Getenv("HOME"), ".vpn_host_manager")
+	DEBUG = false
 )
 
 func permissionCheck() {
-	output, _ := exec.Command("id", "-u").Output()
-	trimmedOutput := strings.Trim(string(output), "\n")
-	if string(trimmedOutput) != "0" {
+	cu, err := user.Current()
+	if err != nil {
+		log.Fatalln("Could not retrieve user information:",err.Error())
+	}
+	if cu.Uid != "0" {
 		log.Fatal("Please rerun as root or with sudo")
 	}
 }
@@ -87,7 +89,7 @@ func disconnectVPN() {
 
 func setupDirectories() {
 	if _, err := os.Stat(resourcePath); os.IsNotExist(err) {
-		error := os.Mkdir(resourcePath, 0755)
+		error := os.Mkdir(resourcePath, 0700)
 		if error != nil {
 			log.Fatalf("encountered error during setup, %s", error)
 		}

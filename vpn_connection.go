@@ -101,7 +101,10 @@ func addManagedVPNHost(vpnHost vpnInstance) {
 	if err != nil {
 		log.Fatal("Could not read hostfile")
 	}
-	hosts.Add(vpnHost.PublicIP, managedHost)
+	err = hosts.Add(vpnHost.PublicIP, managedHost)
+	if err != nil {
+		log.Fatal("Could not add entry to host file")
+	}
 	if err := hosts.Flush(); err != nil {
 		log.Fatalf("Error writing host entry %s", err)
 	}
@@ -115,7 +118,10 @@ func removeExistingHost() {
 	for _, hostLine := range hosts.Lines {
 		if existingHostRegex.MatchString(hostLine.Raw) {
 			fmt.Printf("Removing `%s` from hostfile\n", hostLine.Raw)
-			hosts.Remove(hostLine.IP, hostLine.Hosts[0])
+			err = hosts.Remove(hostLine.IP, hostLine.Hosts[0])
+			if err != nil {
+				log.Fatal("Could not remove old host entry")
+			}
 		}
 	}
 	if err := hosts.Flush(); err != nil {

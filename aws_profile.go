@@ -65,7 +65,10 @@ func readAWSProfileFile() ([]string, error) {
 		os.Exit(1)
 	}
 	var awsProfiles []string
-	json.Unmarshal(file, &awsProfiles)
+	err := json.Unmarshal(file, &awsProfiles)
+	if err != nil {
+		log.Fatal("could not read AWS profile file")
+	}
 	return awsProfiles, nil
 }
 
