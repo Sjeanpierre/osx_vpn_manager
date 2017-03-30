@@ -74,6 +74,12 @@ func listFilteredInstances(nameFilter string,profile string) []*ec2.Instance {
 						aws.String(strings.Join([]string{"*", nameFilter, "*"}, "")),
 					},
 				},
+				{
+					Name: aws.String("instance-state-name"),
+					Values: []*string{
+						aws.String("running"),
+					},
+				},
 			},
 		}
 		resp, err := svc.DescribeInstances(params)
@@ -105,6 +111,7 @@ func listVpnInstnaces(vpcCidrs map[string]string,profile string) vpnInstanceGrp 
 	var vpnInstances vpnInstanceGrp
 	vpnInstanceList := listFilteredInstances("vpn",profile)
 	for _, instance := range vpnInstanceList {
+		if DEBUG {fmt.Printf("%+v\n\n",instance)}
 		vpn := vpnInstance{
 			VpcID: *instance.VpcId,
 			VpcCidr: vpcCidrs[*instance.VpcId],
@@ -153,7 +160,10 @@ func readHostsJSONFile() vpnInstanceGrp {
 		os.Exit(1)
 	}
 	var vpnHosts vpnInstanceGrp
-	json.Unmarshal(file, &vpnHosts)
+	err := json.Unmarshal(file, &vpnHosts)
+	if err != nil {
+		log.Fatal("Could not read VPN host list")
+	}
 	sort.Sort(vpnHosts)
 	return vpnHosts
 }
