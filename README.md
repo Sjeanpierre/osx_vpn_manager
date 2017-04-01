@@ -62,3 +62,5 @@ connecting.........
 updating route table
 VPN connection to us-preprod-data-services-vpn established!!
 ```
+#### Tip: Bypass requirement for sudo by adding the following to `/etc/sudoers`
+<img width="507" alt="image" src="https://cloud.githubusercontent.com/assets/673382/24582486/ddfed716-16fe-11e7-8847-3987b3831c8f.png">
