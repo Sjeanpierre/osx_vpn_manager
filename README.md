@@ -1,4 +1,4 @@
-####Command line tool wirtten in Go to facilitate the configuration and use of l2tp/ipsec vpn connections on Mac OSX.
+#### Command line tool wirtten in Go to facilitate the configuration and use of l2tp/ipsec vpn connections on Mac OSX.
 
 ## Requirements
 - [Configured AWS credentials with the ability to list EC2 instnaces](https://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs)
