@@ -1,20 +1,20 @@
 package main
 
 import (
-	"io/ioutil"
-	"fmt"
-	"os"
-	"github.com/olekukonko/tablewriter"
-	"path"
 	"encoding/json"
-	"strconv"
+	"fmt"
+	"github.com/olekukonko/tablewriter"
+	"io/ioutil"
 	"log"
+	"os"
+	"path"
 	"regexp"
+	"strconv"
 )
 
 var (
-	vpnProfileFields = []string{"ID #", "Name", "Username"}
-	vpnProfileFilePath = path.Join(resourcePath, "vpn_profiles.json")
+	vpnProfileFields    = []string{"ID #", "Name", "Username"}
+	vpnProfileFilePath  = path.Join(resourcePath, "vpn_profiles.json")
 	noSuchFileErrRegexp = regexp.MustCompile(`no such file or directory`)
 )
 
@@ -131,12 +131,11 @@ func addProfile(profileName string) {
 	psk := detailCapture("PSK:")
 	if confirm() {
 		vpnProfiles = append(vpnProfiles,
-			vpnProfile{Name:profileName,
-				UserName:username,
-				PassWord:password,
-				Psk:psk,
+			vpnProfile{Name: profileName,
+				UserName: username,
+				PassWord: password,
+				Psk:      psk,
 			})
 		writeProfileFile(vpnProfiles)
 	}
 }
-

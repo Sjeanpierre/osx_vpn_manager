@@ -1,21 +1,21 @@
 package main
 
 import (
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"log"
+	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"strings"
-	"encoding/json"
-	"io/ioutil"
-	"path"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/olekukonko/tablewriter"
+	"io/ioutil"
+	"log"
+	"path"
+	"strings"
 
-	"os"
-	"strconv"
-	"sort"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"os"
+	"sort"
+	"strconv"
 	"sync"
 )
 
@@ -32,7 +32,6 @@ type vpnInstance struct {
 }
 type vpnInstanceGrp []vpnInstance
 
-
 func listVPCs(profile string) map[string]string {
 	type o struct {
 		vpcid, vpcidr string
@@ -47,15 +46,15 @@ func listVPCs(profile string) map[string]string {
 	}(resChan)
 	for _, region := range awsRegions {
 		wg.Add(1)
-		go func(profile string,reg string,x *sync.WaitGroup,c chan o) {
+		go func(profile string, reg string, x *sync.WaitGroup, c chan o) {
 			fmt.Printf("fetching vpc details for region: %v\n", reg)
-			session,err := session.NewSession(&aws.Config{Region: aws.String(reg),
+			session, err := session.NewSession(&aws.Config{Region: aws.String(reg),
 				Credentials: credentials.NewCredentials(&credentials.SharedCredentialsProvider{
 					Profile: profile,
 				}),
 			})
 			if err != nil {
-				log.Fatalln("Could not establish new AWS session",err)
+				log.Fatalln("Could not establish new AWS session", err)
 			}
 			svc := ec2.New(session)
 			params := &ec2.DescribeVpcsInput{}
@@ -67,35 +66,35 @@ func listVPCs(profile string) map[string]string {
 			for _, vpc := range resp.Vpcs {
 				vpcID := *vpc.VpcId
 				vpcCIDR := *vpc.CidrBlock
-				c <- o{vpcID,vpcCIDR}
+				c <- o{vpcID, vpcCIDR}
 			}
 			x.Done()
-		}(profile,region,&wg,resChan)
+		}(profile, region, &wg, resChan)
 	}
 	wg.Wait()
 	close(resChan)
 	return vpcList
 }
 
-func listFilteredInstances(nameFilter string,profile string) []*ec2.Instance {
+func listFilteredInstances(nameFilter string, profile string) []*ec2.Instance {
 	var filteredInstances []*ec2.Instance
 	var instanceWG sync.WaitGroup
 	instanceResChan := make(chan *ec2.Instance)
 	go func(res chan *ec2.Instance) {
 		for a := range res {
-			filteredInstances = append(filteredInstances,a)
+			filteredInstances = append(filteredInstances, a)
 		}
 	}(instanceResChan)
 	for _, region := range awsRegions {
 		instanceWG.Add(1)
-		go func(profile string,reg string,x *sync.WaitGroup,ic chan *ec2.Instance) {
+		go func(profile string, reg string, x *sync.WaitGroup, ic chan *ec2.Instance) {
 			session, err := session.NewSession(&aws.Config{Region: aws.String(reg),
 				Credentials: credentials.NewCredentials(&credentials.SharedCredentialsProvider{
 					Profile: profile,
 				}),
 			})
 			if err != nil {
-				log.Fatalln("Could not establish new AWS session",err)
+				log.Fatalln("Could not establish new AWS session", err)
 			}
 			svc := ec2.New(session)
 			fmt.Printf("fetching instances with tag %v in: %v\n", nameFilter, reg)
@@ -126,7 +125,7 @@ func listFilteredInstances(nameFilter string,profile string) []*ec2.Instance {
 				}
 			}
 			x.Done()
-		}(profile, region,&instanceWG,instanceResChan)
+		}(profile, region, &instanceWG, instanceResChan)
 	}
 	instanceWG.Wait()
 	close(instanceResChan)
@@ -144,17 +143,19 @@ func extractTagValue(tagList []*ec2.Tag, lookup string) string {
 	return tagVale
 }
 
-func listVpnInstnaces(vpcCidrs map[string]string,profile string) vpnInstanceGrp {
+func listVpnInstnaces(vpcCidrs map[string]string, profile string) vpnInstanceGrp {
 	var vpnInstances vpnInstanceGrp
-	vpnInstanceList := listFilteredInstances("vpn",profile)
+	vpnInstanceList := listFilteredInstances("vpn", profile)
 	for _, instance := range vpnInstanceList {
-		if DEBUG {fmt.Printf("%+v\n\n",instance)}
+		if DEBUG {
+			fmt.Printf("%+v\n\n", instance)
+		}
 		vpn := vpnInstance{
-			VpcID: *instance.VpcId,
-			VpcCidr: vpcCidrs[*instance.VpcId],
-			Name: extractTagValue(instance.Tags, "Name"),
+			VpcID:       *instance.VpcId,
+			VpcCidr:     vpcCidrs[*instance.VpcId],
+			Name:        extractTagValue(instance.Tags, "Name"),
 			Environment: extractTagValue(instance.Tags, "environment"),
-			PublicIP: *instance.PublicIpAddress,
+			PublicIP:    *instance.PublicIpAddress,
 		}
 		vpnInstances = append(vpnInstances, vpn)
 	}
@@ -178,12 +179,12 @@ func writevpnDetailFile(vpnList vpnInstanceGrp) {
 func refreshHosts() {
 	awsProfiles := awsProfiles()
 	var vpnHostList vpnInstanceGrp
-	for _,awsProfile := range awsProfiles {
-		fmt.Printf("Refreshing hosts list for profile: %s\n",awsProfile)
+	for _, awsProfile := range awsProfiles {
+		fmt.Printf("Refreshing hosts list for profile: %s\n", awsProfile)
 		vpcList := listVPCs(awsProfile)
-		vpn := listVpnInstnaces(vpcList,awsProfile)
+		vpn := listVpnInstnaces(vpcList, awsProfile)
 		//todo, add profile to instances. create function to do so
-		vpnHostList = append(vpnHostList,vpn...)
+		vpnHostList = append(vpnHostList, vpn...)
 		fmt.Println("======")
 	}
 	writevpnDetailFile(vpnHostList)
@@ -228,7 +229,7 @@ func (slice vpnInstanceGrp) Len() int {
 }
 
 func (slice vpnInstanceGrp) Less(i, j int) bool {
-	return slice[i].Name < slice[j].Name;
+	return slice[i].Name < slice[j].Name
 }
 
 func (slice vpnInstanceGrp) Swap(i, j int) {

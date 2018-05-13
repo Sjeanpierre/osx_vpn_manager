@@ -1,17 +1,17 @@
 package main
 
 import (
-	"github.com/go-ini/ini"
-	"fmt"
-	"log"
-	"io/ioutil"
 	"encoding/json"
+	"fmt"
+	"github.com/go-ini/ini"
+	"io/ioutil"
+	"log"
 	"os"
 	"path"
 )
 
 var (
-	awsProfileNamesPath = path.Join(resourcePath, "aws_profile_names.json")
+	awsProfileNamesPath   = path.Join(resourcePath, "aws_profile_names.json")
 	awsCredentialFilePath = path.Join(os.Getenv("HOME"), ".aws", "credentials")
 )
 

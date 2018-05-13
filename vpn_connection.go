@@ -3,27 +3,27 @@ package main
 //todo use keychain to store psks instead of plaintext config file
 
 import (
-	"os/exec"
-	"log"
 	"fmt"
-	"github.com/lextoumbourou/goodhosts"
-	"os"
-	"time"
-	"regexp"
-	"strings"
-	"strconv"
 	"github.com/gernest/wow"
 	"github.com/gernest/wow/spin"
+	"github.com/lextoumbourou/goodhosts"
+	"log"
+	"os"
+	"os/exec"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
 )
 
 var (
-	managedName = "osx_managed_vpn"
-	managedHost = "managedvpn.local"
-	managedPSK = "osx_managed_psk"
+	managedName     = "osx_managed_vpn"
+	managedHost     = "managedvpn.local"
+	managedPSK      = "osx_managed_psk"
 	managedUserName = "osx_managed_un"
-	managedPW = "osx_managed_pw"
-	macvpnCMD = "macosvpn"
-	macvpnArgs = []string{"create",
+	managedPW       = "osx_managed_pw"
+	macvpnCMD       = "macosvpn"
+	macvpnArgs      = []string{"create",
 		"--l2tp",
 		managedName,
 		"--endpoint",
@@ -37,11 +37,11 @@ var (
 		"--split",
 		"--force",
 	}
-	connectionRegex = regexp.MustCompile(`^Connected`)
+	connectionRegex   = regexp.MustCompile(`^Connected`)
 	existingHostRegex = regexp.MustCompile(strings.Join([]string{managedHost, "$"}, ""))
-	vpcUIDRegex = regexp.MustCompile(`^vpc-`)
-	vpcIndexRegex = regexp.MustCompile(`\d?`)
-	sameConnection bool
+	vpcUIDRegex       = regexp.MustCompile(`^vpc-`)
+	vpcIndexRegex     = regexp.MustCompile(`\d?`)
+	sameConnection    bool
 )
 
 func createManagedVPN() {
@@ -163,7 +163,7 @@ func establishManagedVPNConnection(vpnDetails vpnProfile, vpnHost *vpnInstance) 
 			time.Sleep(500 * time.Millisecond)
 		} else {
 			w.Stop()
-			w.PersistWith(spin.Spinner{Frames: []string{"‼️"}},fmt.Sprintf(" Could not establish connection to VPN Host: %s",vpnHost.Name))
+			w.PersistWith(spin.Spinner{Frames: []string{"‼️"}}, fmt.Sprintf(" Could not establish connection to VPN Host: %s", vpnHost.Name))
 			break
 		}
 	}
