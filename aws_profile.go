@@ -100,13 +100,13 @@ func confirmUserSelection(userPrompt string) bool {
 }
 
 func setupProfiles() {
-	fmt.Println("Discovering AWS profile names from credentials file\n")
+	fmt.Println("Discovering AWS profile names from credentials file")
 	cfg, err := ini.Load(awsCredentialFilePath)
 	if err != nil {
 		fmt.Printf("error reading AWS credential file: %s", err)
 	}
 	sections := cfg.SectionStrings()
-	fmt.Println("Please select profiles AWS profiles to include\n")
+	fmt.Println("Please select profiles AWS profiles to include")
 	var addedProfiles []string
 	for _, section := range sections {
 		if section == ini.DEFAULT_SECTION {
