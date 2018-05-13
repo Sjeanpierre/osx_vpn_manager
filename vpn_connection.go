@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"strings"
 	"strconv"
+	"github.com/gernest/wow"
+	"github.com/gernest/wow/spin"
 )
 
 var (
@@ -146,18 +148,22 @@ func establishManagedVPNConnection(vpnDetails vpnProfile, vpnHost *vpnInstance) 
 	}
 	i := 0
 	print("connecting...")
+	w := wow.New(os.Stdout, spin.Get(spin.BouncingBall), " Connecting")
+	w.Start()
 	for {
-		print(".")
 		if connectionEstablished() {
-			print("\n")
+			w.Text(" Updating route table").Spinner(spin.Get(spin.Clock))
 			updateRouting(*vpnHost)
-			fmt.Printf("VPN connection to %s established!!\n", vpnHost.Name)
+			w.Stop()
+			w.PersistWith(spin.Spinner{Frames: []string{"✅"}}, " Updating route table")
+			w.PersistWith(spin.Spinner{Frames: []string{"✅"}}, fmt.Sprintf(" VPN connection to %s established!!", vpnHost.Name))
 			break
 		} else if i < 20 {
 			i++
 			time.Sleep(500 * time.Millisecond)
 		} else {
-			log.Fatal("Could not set route, timed after 10 seconds waiting for VPN connection\n")
+			w.Stop()
+			w.PersistWith(spin.Spinner{Frames: []string{"‼️"}},fmt.Sprintf(" Could not establish connection to VPN Host: %s",vpnHost.Name))
 			break
 		}
 	}
@@ -201,12 +207,10 @@ func connectionEstablished() bool {
 }
 
 func updateRouting(vpnHost vpnInstance) {
-	print("updating route table\n")
 	cmd := exec.Command("route", "-v", "add", "-net", vpnHost.VpcCidr, "-interface", "ppp0")
 	err := cmd.Run()
 	if err != nil {
 		log.Fatalf("Could not update route table after VPN connection: %s\n", err.Error())
-
 	}
 }
 
@@ -221,7 +225,7 @@ func selectVPNHost(identifier string) vpnInstance {
 		}
 	}
 	if vpcIndexRegex.MatchString(identifier) {
-		fmt.Println("Connecting to VPN by ID#")
+		fmt.Println("Connecting to VPN by ID #")
 		for index, host := range vpnHostsList {
 			if strconv.Itoa(index) == identifier {
 				return host
