@@ -1,7 +1,7 @@
 # Generate tarball with new build of osx_vpn_manager
 #
 # NOTE: OSX only
-VERSION=$$(cat main.go | grep -i "cliVersion =" | awk {'print$$3'} | tr -d '"')
+VERSION=$$(cat main.go | grep -i "cliVersion   =" | awk {'print$$3'} | tr -d '"')
 
 
 all: clean build compress report
