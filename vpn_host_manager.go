@@ -3,20 +3,21 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"path"
+	"sort"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/olekukonko/tablewriter"
-	"io/ioutil"
-	"log"
-	"path"
-	"strings"
-
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"os"
-	"sort"
-	"strconv"
-	"sync"
 )
 
 var awsRegions = []string{"us-east-1", "us-west-1", "us-west-2", "eu-west-1", "eu-central-1", "sa-east-1"}
@@ -116,8 +117,11 @@ func listFilteredInstances(nameFilter string, profile string) []*ec2.Instance {
 			}
 			resp, err := svc.DescribeInstances(params)
 			if err != nil {
-				fmt.Println("there was an error listing instnaces in", reg, err.Error())
+				fmt.Println("there was an error listing instances in", reg, err.Error())
 				log.Fatal(err.Error())
+			}
+			if resp.NextToken != nil {
+				log.Printf("There are more pages on the call to %s for profile %s", reg, profile)
 			}
 			for _, reservation := range resp.Reservations {
 				for _, instance := range reservation.Instances {
@@ -128,6 +132,8 @@ func listFilteredInstances(nameFilter string, profile string) []*ec2.Instance {
 		}(profile, region, &instanceWG, instanceResChan)
 	}
 	instanceWG.Wait()
+	//wait an extra second before closing channel
+	time.Sleep(500 * time.Millisecond)
 	close(instanceResChan)
 	return filteredInstances
 }
@@ -143,7 +149,7 @@ func extractTagValue(tagList []*ec2.Tag, lookup string) string {
 	return tagVale
 }
 
-func listVpnInstnaces(vpcCidrs map[string]string, profile string) vpnInstanceGrp {
+func listVpnInstances(vpcCidrs map[string]string, profile string) vpnInstanceGrp {
 	var vpnInstances vpnInstanceGrp
 	vpnInstanceList := listFilteredInstances("vpn", profile)
 	for _, instance := range vpnInstanceList {
@@ -182,7 +188,7 @@ func refreshHosts() {
 	for _, awsProfile := range awsProfiles {
 		fmt.Printf("Refreshing hosts list for profile: %s\n", awsProfile)
 		vpcList := listVPCs(awsProfile)
-		vpn := listVpnInstnaces(vpcList, awsProfile)
+		vpn := listVpnInstances(vpcList, awsProfile)
 		//todo, add profile to instances. create function to do so
 		vpnHostList = append(vpnHostList, vpn...)
 		fmt.Println("======")
